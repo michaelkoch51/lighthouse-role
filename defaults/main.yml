@@ -1,0 +1,8 @@
+---
+lighthouse_archive_name: "lighthouse-master.zip"
+lighthouse_archive_src: "files/{{ lighthouse_archive_name }}"
+lighthouse_archive_dest: "/tmp/{{ lighthouse_archive_name }}"
+lighthouse_dir: /var/www/lighthouse
+lighthouse_extracted_dir: /var/www/lighthouse/lighthouse-master
+nginx_user: www-data
+nginx_site_name: lighthouse

@@ -1,0 +1,53 @@
+---
+- name: Install nginx and unzip
+  ansible.builtin.package:
+    name:
+      - nginx
+      - unzip
+    state: present
+
+- name: Copy Lighthouse archive from control node
+  ansible.builtin.copy:
+    src: "{{ lighthouse_archive_src }}"
+    dest: "{{ lighthouse_archive_dest }}"
+    mode: '0644'
+
+- name: Create Lighthouse directory
+  ansible.builtin.file:
+    path: "{{ lighthouse_dir }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    mode: '0755'
+
+- name: Unarchive Lighthouse
+  ansible.builtin.unarchive:
+    src: "{{ lighthouse_archive_dest }}"
+    dest: "{{ lighthouse_dir }}"
+    remote_src: true
+  notify: Restart nginx
+
+- name: Configure nginx for Lighthouse
+  ansible.builtin.template:
+    src: nginx_lighthouse.j2
+    dest: "{{ nginx_sites_available }}/{{ nginx_site_name }}.conf"
+    mode: '0644'
+  notify: Restart nginx
+
+- name: Enable Lighthouse nginx site
+  ansible.builtin.file:
+    src: "{{ nginx_sites_available }}/{{ nginx_site_name }}.conf"
+    dest: "{{ nginx_sites_enabled }}/{{ nginx_site_name }}.conf"
+    state: link
+  notify: Restart nginx
+
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: "{{ lighthouse_default_site }}"
+    state: absent
+  notify: Restart nginx
+
+- name: Ensure nginx is started and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
